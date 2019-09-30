@@ -5,6 +5,13 @@ services:
         build:
             context: .
             dockerfile: dockerfile_odoo
+        deploy:
+            replicas: 3
+            update_config:
+                parallelism: 2
+                delay: 10s
+            restart_policy:
+                condition: on-failure
         depends_on:
             - db
         volumes:
@@ -16,6 +23,10 @@ services:
             - POSTGRES_PASSWORD=odoo
             - POSTGRES_USER=odoo
             - PGDATA=/var/lib/postgresql/data/pgdata
+        deploy:
+            replicas: 2
+            restart_policy:
+                condition: on-failure
         volumes:
             - odoo-db-data:/var/lib/postgresql/data/pgdata
     proxy:
@@ -25,8 +36,12 @@ services:
         build:
             context: .
             dockerfile: dockerfile_nginx
+        deploy:
+            replicas: 2
+            restart_policy:
+                condition: on-failure
         ports:
-            - "8069:8069"
+            - "5432:8069"
 volumes:
     odoo-web-data:
     odoo-db-data:
