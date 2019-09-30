@@ -1,6 +1,6 @@
-#Odoo deployment on docker with postgresql DB and nginx reverse proxy
+# Odoo deployment on docker with postgresql DB and nginx reverse proxy
 
-##Scenario:
+## Scenario:
 We are going to deploy every service separately on different servers.
 
 1.Server1 is for Postgres Database (192,168.1.10).
@@ -14,9 +14,9 @@ The approach we are going to use is Active-Active implementation.
 Preassuming all servers have Ubuntu 16.04 server installed on them.
 
 
-#Postgres Installation:
+# Postgres Installation:
 
-##Setup:
+## Setup:
 All servers have to be running & Ubuntu server 16.04 installed on them.
 
 Important Note: before running installation scripts, you have to edit script parameters specified in it.
@@ -47,7 +47,7 @@ The password-less key file will be used by both PostgreSQL servers to sync data 
 
 
 
-##Step 2 (Slave DB):
+## Step 2 (Slave DB):
 Download second script on Slave server to Install PostgreSQL & Password-less SSH keys:
 ```console
 sudo wget https://github.com/somud17/Odoo-Deploy/tree/master/Proj_dedicatedservers/slave-install.sh
@@ -63,7 +63,7 @@ It will install PostgreSQL, repmgr & password-less keys and clones Master server
 
 
 
-##Step 3 (PgBouncer):
+## Step 3 (PgBouncer):
 Download final script to install PgBouncer server.
 ```console 
 sudo wget https://github.com/somud17/Odoo-Deploy/tree/master/Proj_dedicatedservers/pgbouncer-install.sh
@@ -76,7 +76,7 @@ ODOO_DB_PASS="odoo"
 ```
 Then, save modification by pressing Ctrl+O then Enter then Ctrl+X to exit the editor.
 
-##Nginx Installation:
+## Nginx Installation:
 Log in to Nginx server (192.168.1.12), download Nginx install script:
 
 sudo wget https://github.com/somud17/Odoo-Deploy/tree/master/Proj_dedicatedservers/nginx-install.sh
@@ -306,7 +306,7 @@ sudo crontab -e
 
 Then, save modification by pressing Ctrl+O then Enter then Ctrl+X to exit the editor.
 
-##Final Step (Odoo): 
+## Final Step (Odoo): 
 If you already have an Odoo server deployed, open Odoo configuration file and modify DB settings:
 ```
 db_host = 192.168.1.12 # PgBouncer server IP
@@ -320,7 +320,7 @@ Important Notes:
 of failure. On PgBouncer server, you should find 2 scripts also switch-node1 & switch-node2 to help you switch easily between Nodes.
 
 
-###Master Failover:
+### Master Failover:
 In case the Master DB failover, login to the Slave server and promote it with promote-server script & then login to PgBouncer server and 
 run switch-node# script in order to switch to the new Master (Promoted) DB.
 
