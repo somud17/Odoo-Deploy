@@ -3,9 +3,9 @@
 ## Scenario:
 We are going to deploy every service separately on different servers.
 
-1.Server1 is for Postgres Database (192,168.1.10).
+1.Server1 is for Postgres Database (Master - 192,168.1.10 & Slave - 192.168.1.11).
 
-2.Server2 is for Odoo Application (192.168.1.11).
+2.Server2 is for Odoo Application (192.168.1.13).
 
 3.Server3 is for Nginx as (Reverse Proxy - Caching - Loadbalancer) (192.168.1.12).
 
@@ -20,7 +20,7 @@ Preassuming all servers have Ubuntu 16.04 server installed on them.
 All servers have to be running & Ubuntu server 16.04 installed on them.
 
 Important Note: before running installation scripts, you have to edit script parameters specified in it.
-Step 1 (Master DB):
+### Step 1 (Master DB):
 ```console
 sudo wget https://github.com/somud17/Odoo-Deploy/tree/master/Proj_dedicatedservers/master-install.sh
 sudo chmod +x master-install.sh
@@ -45,9 +45,7 @@ to Slave Server and creating ready scripts in the home directory to help DB admi
 
 The password-less key file will be used by both PostgreSQL servers to sync data together without manual authenticating.
 
-
-
-## Step 2 (Slave DB):
+### Step 2 (Slave DB):
 Download second script on Slave server to Install PostgreSQL & Password-less SSH keys:
 ```console
 sudo wget https://github.com/somud17/Odoo-Deploy/tree/master/Proj_dedicatedservers/slave-install.sh
@@ -56,14 +54,11 @@ sudo nano slave-install.sh
 MASTER_IP="192.168.1.10" # Enter Master server IP address
 SLAVE_IP="192.168.1.11" # Enter Slave server IP address
 ```
-
 Then, save modification by pressing Ctrl+O then Enter then Ctrl+X to exit the editor.
 
 It will install PostgreSQL, repmgr & password-less keys and clones Master server configurations.
 
-
-
-## Step 3 (PgBouncer):
+### Step 3 (PgBouncer):
 Download final script to install PgBouncer server.
 ```console 
 sudo wget https://github.com/somud17/Odoo-Deploy/tree/master/Proj_dedicatedservers/pgbouncer-install.sh
@@ -78,14 +73,15 @@ Then, save modification by pressing Ctrl+O then Enter then Ctrl+X to exit the ed
 
 ## Nginx Installation:
 Log in to Nginx server (192.168.1.12), download Nginx install script:
-
+```console
 sudo wget https://github.com/somud17/Odoo-Deploy/tree/master/Proj_dedicatedservers/nginx-install.sh
 sudo chmod +x nginx-install.sh
+```
 Let's modify Nginx installation script before execution.
 ```console
 sudo nano nginx-install.sh
 OE_DOMAIN="odoo.example.info *.odoo.example.info" # Modify it to your own domain name it's important for SSL registering
-OE_HOST="192.168.1.11" # Change it to Odoo server Local IP address
+OE_HOST="192.168.1.13" # Change it to Odoo server Local IP address
 OE_PORT="8069"
 NGINX_CONFIG="odoo"
 NGINX_CONFIG_PATH="/etc/nginx/sites-available/${NGINX_CONFIG}"
@@ -105,12 +101,12 @@ We will find the following:
 ```consle
 #odoo server
 upstream odoo {
-        server 192.168.1.11:8069 weight=1 fail_timeout=0;
+        server 192.168.1.13:8069 weight=1 fail_timeout=0;
         # For more instances of Odoo add them below
         #server <SECOND-SERVER>:8069 weight=1 fail_timeout=0;
 }
 upstream odoochat {
-        server 192.168.1.11:8072 weight=1 fail_timeout=0;
+        server 192.168.1.13:8072 weight=1 fail_timeout=0;
         # For more instances of Odoo add them below
         #server <SECOND-SERVER>:8072 weight=1 fail_timeout=0;
 }
@@ -191,24 +187,17 @@ After that we start registering SSL certificates by Certbot:
 ```
 sudo certbot --nginx certonly
 ```
-You will be prompt to enter email & company's information to be included in the certificate, in addition, you will be notified on the specified 
-email whenever certificate requires renewal.
-
-After filling all information needed, choose website domain you want to create a certificate for it. In our case, it's odoo.example.info
-
-Lastly, it will show you where on the system the keys are stored keep it in mind because we are going to include it in the configuration file.
-
-After that we head back to our website configuration file again:
-
+You will be prompt to enter email & company's information to be included in the certificate, in addition, you will be notified on the specified email whenever certificate requires renewal. After filling all information needed, choose website domain you want to create a certificate for it. In our case, it's odoo.example.info. 
+Lastly, it will show you where on the system the keys are stored keep it in mind because we are going to include it in the configuration file. After that we head back to our website configuration file again:
 ```console
 sudo nano /etc/nginx/sites-enabled/odoo
 #odoo server
 upstream odoo {
-        server 192.168.1.11:8069 weight=1 fail_timeout=0;
+        server 192.168.1.13:8069 weight=1 fail_timeout=0;
         #server <SECOND-SERVER>:8069 weight=1 fail_timeout=0;
 }
 upstream odoochat {
-        server 192.168.1.11:8072 weight=1 fail_timeout=0;
+        server 192.168.1.13:8072 weight=1 fail_timeout=0;
         #server <SECOND-SERVER>:8072 weight=1 fail_timeout=0;
 }
 
@@ -303,14 +292,13 @@ sudo crontab -e
 # m h dom mon dow command
 0 3 * * 1 certbot renew --dry-run # Certificate will be renewed everyweek at 3 AM
 ```
-
 Then, save modification by pressing Ctrl+O then Enter then Ctrl+X to exit the editor.
 
 ## Final Step (Odoo): 
 If you already have an Odoo server deployed, open Odoo configuration file and modify DB settings:
 ```
-db_host = 192.168.1.12 # PgBouncer server IP
-db_port = 6432 # PgBouncer port
+db_host = 192.168.1.10 # Master PostgreSql server IP
+db_port = 6432 # Master PostgreSql port
 db_user = odoo # DB user
 db_password = odoo # DB user's password
 ```
