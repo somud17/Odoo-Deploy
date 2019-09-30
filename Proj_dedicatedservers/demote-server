@@ -1,0 +1,5 @@
+#!/bin/bash
+sudo service postgresql stop
+sudo su - postgres -c "repmgr -f /etc/repmgr/repmgr.conf --force --rsync-only -h 192.168.33.17 -d repmgr -U repmgr --verbose standby clone"
+sudo service postgresql restart
+sudo su - postgres -c "repmgr -f /etc/repmgr/repmgr.conf --force standby register"
